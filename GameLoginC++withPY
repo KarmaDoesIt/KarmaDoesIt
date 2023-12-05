@@ -1,0 +1,187 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <conio.h>
+#include <Python.h>
+#include <Windows.h>
+#include <string>
+
+using namespace std;
+void CallPython(string PythonModuleName, string PythonFunctionName)
+{
+    char* funcname = new char[PythonFunctionName.length() + 1];
+    strcpy_s(funcname, PythonFunctionName.length() + 1, PythonFunctionName.c_str());
+
+    char* modname = new char[PythonModuleName.length() + 1];
+    strcpy_s(modname, PythonModuleName.length() + 1, PythonModuleName.c_str());
+
+    printf("Hit any key to initialize the game: \n");
+    system("pause");
+
+
+    Py_Initialize();
+
+    TCHAR cwd[2048];
+    GetCurrentDirectory(sizeof(cwd), cwd);
+
+    PyObject* my_module = PyImport_ImportModule(modname);
+
+
+    PyErr_Print();
+
+    PyObject* my_function = PyObject_GetAttrString(my_module, funcname);
+
+    PyErr_Print();
+
+
+    PyObject* my_result = PyObject_CallObject(my_function, NULL);
+
+    PyErr_Print();
+
+    Py_Finalize();
+
+    delete[] funcname;
+    delete[] modname;
+}
+
+void login() {
+    string UN, PW;
+    string UE, PE;
+    bool On_Off = true;
+    bool Off = true;
+    int C = 0;
+    int left = 3;
+
+    cout << "\nLOGIN: \n";
+    while (On_Off) {
+        //********************************************
+        fstream user;
+        user.open("users.txt", ios::in);
+        if (C < 3 && Off && user.is_open()) {
+            if (C > 0) {
+                cout << "\nPassword or Username are not correct!!" << endl;
+                left--;
+                cout << "You have *" << left << "* attempts left \n" << endl;
+            }
+            cout << "Username: ";
+            getline(cin, UE);
+            cout << "Password: ";
+            getline(cin, PE);
+            C++;
+            string read;
+            //====================================================*
+            while (getline(user, read)) {
+                stringstream convertor(read);
+                convertor >> UN >> PW;
+                if (UE == UN && PE == PW) {
+                    Off = false;
+                }
+            }
+            //=====================================================*
+        }
+        else if (!Off) {
+            cout << "\nSign in Successful\n\n";
+            user.close();
+            On_Off = false;
+        }
+        else {
+            cout << "\n**Incorrect Login**\n\n";
+            user.close();
+            On_Off = false;
+        }
+    }
+}
+
+void registry() {
+    string newName, checkName, newPass, confirmPass;
+    int MiniPass;
+    bool if_ON = true;
+    bool oo = true;
+
+    cout << "\nCreate New Account:\n";
+
+    while (oo) {
+        cout << "Enter New Username: ";
+        getline(cin, newName);
+        MiniPass = newName.length();
+        fstream yusers;
+        yusers.open("Users.txt", ios::in);
+        if (if_ON && MiniPass >= 1 && yusers.is_open()) {
+            string readd;
+            while (getline(yusers, readd)) {
+                stringstream OnlyUsers(readd);
+                OnlyUsers >> checkName;
+                if (newName == checkName) {
+                    cout << "\n*" << newName << "Username already exists\n Try another one:\n" << endl;
+                    if_ON = false;
+                }
+            }
+            yusers.close();
+            if (!if_ON) {
+                if_ON = true;
+            }
+            else {
+                oo = false;
+            }
+        }
+    }
+    while (true) {
+        cout << "Enter New password: ";
+        getline(cin, newPass);
+        cout << "Confirm password: ";
+        getline(cin, confirmPass);
+        MiniPass = newPass.length();
+
+        if (MiniPass < 7) {
+            cout << "\nYour password is weak, use at least 7 letters\n \n";
+        }
+        else if (confirmPass == newPass) {
+            fstream users;
+            users.open("Users.txt", ios::app);
+            if (users.is_open()) {
+                users << newName + " " + newPass << endl;
+                users.close();
+            }
+            cout << "\n===================================\n";
+            cout << "\nNew account created! \n \n";
+            cout << "===================================\n";
+            break;
+        }
+        else {
+            cout << "\nPassword is not correct! \n" << endl;
+
+        }
+    }
+    login();
+
+}
+
+int main()
+{
+    string LoR;
+    cout << "\n-Login or Register-\n\n";
+    cout << "===================================\n";
+    cout << "\n-Please type (login) or (register)-\n\n";
+
+    while (true) {
+
+        getline(cin, LoR);
+        if (LoR == "login") {
+            login();
+            CallPython("game", "play");
+            system("pause");
+            break;
+        }
+        else if (LoR == "register") {
+            registry();
+            CallPython("game", "play");
+            system("pause");
+            break;
+        }
+        else {
+            cout << "\nPlease rewrite your answer!\n";
+        }
+    }
+
+    return 0;
+}
